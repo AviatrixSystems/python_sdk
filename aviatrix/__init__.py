@@ -117,7 +117,7 @@ class Aviatrix(object):
             raise ValueError('Invalid method %s', method)
 
         json_response = response.read()
-        logging.debug('[%s] HTTP Response: %s', url, json_response)
+        logging.debug('[%s %s] HTTP Response: %s', method, url, json_response)
         if json_response[0:6] == 'Error:':
             raise ValueError(json_response)
 
@@ -760,7 +760,10 @@ class Aviatrix(object):
 
         params = {}
         self._avx_api_call('POST', 'list_policy_tags', params, True)
-        return self.results
+        if 'tags' in self.results:
+            return self.results['tags']
+        else:
+            return []
 
     def add_fw_tag(self, tag_name):
         """
@@ -824,12 +827,29 @@ class Aviatrix(object):
         self._avx_api_call('GET', 'vpc_access_policy', params)
         return self.results
 
+    def set_fw_policy_base(self, gw_name, base_policy, base_log_enable):
+        """
+        Sets the firewall policy base policy and base log enable
+        Arguments:
+        gw_name - string - the name of the gateway to return policies
+        base_policy - string - one of ('allow-all', 'deny-all')
+        base_log_enable - bool or string - True/False or 'on'/'off'
+        """
+
+        if isinstance(base_log_enable, basestring):
+            s_log_enable = base_log_enable
+        else:
+            s_log_enable = 'on' if base_log_enable else 'off'
+        params = {'vpc_name': gw_name, 'base_policy': base_policy,
+                  'base_policy_log_enable': s_log_enable}
+        self._avx_api_call('GET', 'set_vpc_base_policy', params)
+
     def set_fw_policy_security_rules(self, gw_name, rules):
         """
         Sets the firewall policy rules for the given gateway
         Arguments:
         gw_name - string - the name of the gateway to return policies
-        rules - list[dict] - list of dictionary with keys 
+        rules - list[dict] - list of dictionary with keys
                 ('protocol', 's_ip', 'log_enable', 'd_ip', 'deny_allow', 'port')
                all keys are required and all values are strings
                deny_allow is one of ('allow', 'deny')
