@@ -148,7 +148,8 @@ def clone_fqdn_rules(src_controller, src_gwy,
             dst_controller.set_fqdn_filter_domain_list(tag, domains)
             if src_tag_details['state'] == 'enabled':
                 dst_controller.enable_fqdn_filter(tag)
-
+            # NOTE: it may be appropriate to attach the gateway to the tags
+            # here also
         else:
             logging.warn('FQDN Filter Tag %s already present in destination', tag)
             # NOTE: it may be appropriate to update the domains associated
