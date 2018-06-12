@@ -522,6 +522,96 @@ class Aviatrix(object):
             params['saml_endpoint'] = saml_endpoint
         self._avx_api_call('POST', 'attach_vpn_user', params)
 
+    def add_vpn_profile(self, profile_name, base_policy=None):
+        """
+        Adds a new VPN profile with the given name
+        Arguments:
+        profile_name - string - name of the new profile
+        base_policy - string - one of (deny_all, allow_all)
+        """
+
+        params = {'profile_name': profile_name,
+                  'base_policy': 'deny_all' if not base_policy else base_policy}
+        self._avx_api_call('GET', 'add_user_profile', params)
+
+    def delete_vpn_profile(self, profile_name):
+        """
+        Deletes an existing VPN profile with the given name
+        Arguments:
+        profile_name - string - name of the profile to delete
+        """
+
+        params = {'profile_name': profile_name}
+        self._avx_api_call('GET', 'del_user_profile', params)
+
+    def list_vpn_profile_policies(self, profile_name):
+        """
+        Gets a list of all policies associated with the given profile
+        Arguments:
+        profile_name - string - name of the profile
+        Returns:
+        array of dict containing:
+              'action' : 'allow', 'deny'
+              'protocol': 'all', 'tcp', 'udp', 'icmp', 'sctp', 'rdp', 'dccp'
+              'target': valid CIDR
+              'port': port or port range (for example, '25' or '25:1024')
+        """
+        params = {'profile_name': profile_name}
+        self._avx_api_call('GET', 'list_profile_policies', params)
+        if 'policies' in self.results:
+            return self.results['policies']
+        return []
+
+    def update_vpn_profile_policies(self, profile_name, policies):
+        """
+        Updates the policies associated with the given profile
+        Arguments:
+        profile_name - string - name of the profile to update
+        policies - array(dict) - array of objects containing
+              'action' : 'allow', 'deny'
+              'protocol': 'all', 'tcp', 'udp', 'icmp', 'sctp', 'rdp', 'dccp'
+              'target': valid CIDR
+              'port': port or port range (for example, '25' or '25:1024')
+        """
+
+        params = {'profile_name': profile_name,
+                  'policy': json.dumps(policies)}
+        self._avx_api_call('GET', 'update_profile_policy', params)
+
+    def add_vpn_profile_member(self, profile_name, username):
+        """
+        Adds a user to an existing profile
+        Arguments:
+        profile_name - string - name of an existing profile
+        username - string - name of an existing VPN user
+        """
+
+        params = {'profile_name': profile_name, 'username': username}
+        self._avx_api_call('GET', 'add_profile_member', params)
+
+    def delete_vpn_profile_member(self, profile_name, username):
+        """
+        Deletes a user from an existing profile
+        Arguments:
+        profile_name - string - name of an existing profile
+        username - string - name of an existing VPN user
+        """
+
+        params = {'profile_name': profile_name, 'username': username}
+        self._avx_api_call('GET', 'del_profile_member', params)
+
+    def list_vpn_profiles(self):
+        """
+        Lists all VPN profiles and their members
+        Returns:
+        dictionary(string => list). dictionary key is the profile name,
+                     value is a list of member usernames
+        """
+
+        params = {}
+        self._avx_api_call('GET', 'list_user_profile_names', params)
+        return self.results
+
     class StatName(object):
         """
         Enum representation for the statistic name field
@@ -762,8 +852,7 @@ class Aviatrix(object):
         self._avx_api_call('POST', 'list_policy_tags', params, True)
         if 'tags' in self.results:
             return self.results['tags']
-        else:
-            return []
+        return []
 
     def add_fw_tag(self, tag_name):
         """
