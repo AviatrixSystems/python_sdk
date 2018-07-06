@@ -949,4 +949,4 @@ class Aviatrix(object):
         """
 
         params = {'vpc_name': gw_name, 'new_policy': json.dumps(rules)}
-        self._avx_api_call('GET', 'update_access_policy', params)
+        self._avx_api_call('POST', 'update_access_policy', params)
