@@ -117,7 +117,7 @@ class Aviatrix(object):
             raise ValueError('Invalid method %s', method)
 
         json_response = response.read()
-        logging.debug('[%s %s] HTTP Response: %s', method, url, json_response)
+        logging.debug('[%s %s%s] HTTP Response: %s', method, url, (' POST DATA: ' + data if method == 'POST' else ''), json_response)
         if json_response[0:6] == 'Error:':
             raise ValueError(json_response)
 
@@ -950,3 +950,19 @@ class Aviatrix(object):
 
         params = {'vpc_name': gw_name, 'new_policy': json.dumps(rules)}
         self._avx_api_call('POST', 'update_access_policy', params)
+
+    def set_site2cloud_remote_subnet(self, vpc_id, conn_name, new_subnet):
+        """
+        Change the site2cloud connection remote subnet
+        Arguments:
+        vpc_id - string - the VPC ID that this connection is connected to
+        conn_name - string - the site2cloud connection name
+        new_subnet - string/cidr - the new CIDR
+        """
+
+        params = {'vpc_id': vpc_id,
+                  'conn_name': conn_name,
+                  'network_type': 2,#TODO: what is this?
+                  'cloud_subnet_cidr': new_subnet,
+                  'subaction': 'edit'}
+        self._avx_api_call('POST', 'site2cloud_conn', params, True)
