@@ -2,7 +2,7 @@ from setuptools import setup
 
 setup(
     name='aviatrix-sdk',
-    version='0.9.1',
+    version='0.9.2',
     description='Aviatrix Python SDK',
     long_description='Aviatrix Python SDK for automating Aviatrix Controller.',
     author='Aviatrix Solution Architects',
