@@ -10,9 +10,10 @@
    $4 - GW - string - a gateway name to use for testing
 
 """
-#import logging
-#logging.basicConfig(stream=sys.stdout, level=logging.DEBUG)
+import logging
 import sys
+logging.basicConfig(stream=sys.stdout, level=logging.DEBUG)
+
 
 from aviatrix import Aviatrix
 
@@ -29,7 +30,7 @@ def main():
                '    GW name of a provisioned gateway\n' % sys.argv[0])
         sys.exit(1)
 
-    #fw_tag_example(sys.argv[1], sys.argv[2], sys.argv[3])
+    fw_tag_example(sys.argv[1], sys.argv[2], sys.argv[3])
     fw_policies_example(sys.argv[1], sys.argv[2], sys.argv[3], sys.argv[4])
 
 def fw_tag_example(controller_ip, username, password):
@@ -46,17 +47,17 @@ def fw_tag_example(controller_ip, username, password):
     controller.login(username, password)
 
     current = controller.list_fw_tags()
-    print "CURRENT tags: %s" % (current)
+    print "1. CURRENT tags: %s" % (current)
 
     controller.add_fw_tag('TEST_ME')
     current = controller.list_fw_tags()
-    if 'TEST_ME' not in current['tags']:
-        print 'ERROR: TEST_ME tag is missing: %s' % (current['tags'])
+    if 'TEST_ME' not in current:
+        print 'ERROR: TEST_ME tag is missing: %s' % (current)
         return
-    print 'Added TEST_ME tag'
+    print '2. Added TEST_ME tag'
 
     members = controller.get_fw_tag_members('TEST_ME')
-    print 'current members: %s' % (members)
+    print '3. current members: %s' % (members)
     members.append({'name': 'fwtag1',
                     'cidr': '192.168.1.0/24'})
     controller.set_fw_tag_members('TEST_ME', members)
@@ -64,6 +65,14 @@ def fw_tag_example(controller_ip, username, password):
     print 'current members: %s' % (members)
     members.append({'name': 'fwtag2',
                     'cidr': '192.168.2.0/24'})
+    members.append({'name': 'fwtag3',
+                    'cidr': '192.168.3.0/24'})
+    members.append({'name': 'fwtag4',
+                    'cidr': '192.168.4.0/24'})
+    members.append({'name': 'fwtag5',
+                    'cidr': '192.168.5.0/24'})
+    members.append({'name': 'fwtag6',
+                    'cidr': '192.168.6.0/24'})
     controller.set_fw_tag_members('TEST_ME', members)
     members = controller.get_fw_tag_members('TEST_ME')
     print 'current members: %s' % (members)
@@ -72,8 +81,8 @@ def fw_tag_example(controller_ip, username, password):
 
     controller.delete_fw_tag('TEST_ME')
     current = controller.list_fw_tags()
-    if 'TEST_ME' in current['tags']:
-        print 'ERROR: TEST_ME tag is in %s' % (current['tags'])
+    if 'TEST_ME' in current:
+        print 'ERROR: TEST_ME tag is in %s' % (current)
         return
     print 'Removed TEST_ME tag'
 

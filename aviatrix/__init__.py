@@ -17,6 +17,7 @@ controller.login(username, password)
 controller ...
 """
 
+import collections
 import datetime
 import json
 import logging
@@ -104,10 +105,14 @@ class Aviatrix(object):
         self.results - set to the reason or results object
         """
         url = 'https://%s/v1/%s' % (self.controller_ip, ('api' if not is_backend else 'backend1'))
-        new_parameters = dict(parameters)
+        # OrderedDict here because of bugs in the API that require some
+        # arguments to appear in a particular order (see update_policy_members
+        # for an example)
+        new_parameters = collections.OrderedDict(parameters)
         new_parameters['action'] = action
         new_parameters['CID'] = self.customer_id
         data = urllib.urlencode(new_parameters, True)
+
         if method == 'GET':
             url = url + '?' + data
             response = urllib2.urlopen(url, context=self.ctx)
@@ -893,7 +898,14 @@ class Aviatrix(object):
         members - list[dict] - dict should include 'name', 'cidr'
         """
 
-        params = {'tag_name': tag_name}
+        # OrderedDict() is required here due to a bug in the API that requires
+        # the arguments to be passed in sequence:
+        #    ...
+        #    &new_policies[0][name]=foo&new_policies[0][cidr]=10.0.0.0/24
+        #    &new_policies[1][name]=foo&new_policies[1][cidr]=10.1.0.0/24
+        #    &...
+        params = collections.OrderedDict()
+        params['tag_name'] = tag_name
         current = 0
         for member in members:
             params['new_policies[%d][name]' % (current)] = member['name']
