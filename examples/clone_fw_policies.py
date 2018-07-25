@@ -44,7 +44,7 @@ def main():
 
     # find the destination gateway
     gw_name = sys.argv[4]
-    dst_gwy = src_controller.get_gateway_by_name('admin', gw_name)
+    dst_gwy = dst_controller.get_gateway_by_name('admin', gw_name)
     if not dst_gwy:
         print 'Destination gateway %s not found\n' % (gw_name)
         return
