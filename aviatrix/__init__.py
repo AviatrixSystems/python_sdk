@@ -151,8 +151,11 @@ class Aviatrix(object):
         Side Effects:
         self.customer_id set to the CID in the response
         """
+
         if not username or not password:
             raise ValueError('Username and password are required')
+        # clear out the CID so it's not used with the login API
+        self.customer_id = None
         self._avx_api_call('GET', 'login', {'username': username,
                                             'password': password})
         try:
@@ -230,6 +233,19 @@ class Aviatrix(object):
         params = {'customer_id': customer_id}
         self._avx_api_call('GET', 'setup_customer_id', params)
 
+    def upgrade(self, version=None):
+        """
+        Upgrade the controller and gateway(s) to the new version
+
+        Arguments:
+        version - string - version string or "latest" for the latest version
+        """
+
+        params = {}
+        if version:
+            params['version'] = version
+        self._avx_api_call('POST', 'userconnect_release', params, True)
+
     def get_controller_public_ip(self):
         """
         Gets the Aviatrix Controller public IP address
@@ -255,6 +271,47 @@ class Aviatrix(object):
                          'ldap_additional_req', 'ldap_use_ssl',
                          'ldap_client_cert', 'ldap_ca_cert', 'save_template',
                          'allocate_new_eip']
+
+    def edit_account_user_password(self, username, old_password, new_password):
+        """
+        Modify an account user's password
+        Arguments:
+        username - string - user to update
+        old_password - string - current password
+        new_password - string - new password
+        """
+
+        params = {'username': username,
+                  'what': 'password',
+                  'old_password': old_password,
+                  'new_password': new_password}
+        self._avx_api_call('POST', 'edit_account_user', params)
+
+    def edit_account_user_email(self, username, new_email):
+        """
+        Modify an account user's email address
+        Arguments:
+        username - string - user to update
+        new_email - string - new email address
+        """
+
+        params = {'username': username,
+                  'what': 'email',
+                  'email': new_email}
+        self._avx_api_call('POST', 'edit_account_user', params)
+
+    def edit_account_user_account(self, username, new_account):
+        """
+        Modify an account user's account
+        Arguments:
+        username - string - user to update
+        new_account - string - new account name
+        """
+
+        params = {'username': username,
+                  'what': 'account_name',
+                  'account': new_account}
+        self._avx_api_call('POST', 'edit_account_user', params)
 
     def create_gateway(self, account, cloud_type, gw_name, vpc_id, vpc_region,
                        vpc_size, vpc_net, **kwargs):
@@ -696,27 +753,27 @@ class Aviatrix(object):
         self._avx_api_call('POST', 'show_packets_stat_for_gw', params, True)
         return self.results
 
-    def enable_nat(self, gw_name):
+    def enable_snat(self, gw_name):
         """
-        Enables NAT on the given gateway
+        Enables SNAT on the given gateway
         Arguments:
         gw_name - string - gateway name
 
         """
 
-        params = {'gw_name': gw_name}
-        self._avx_api_call('POST', 'enable_nat', params)
+        params = {'gateway_name': gw_name}
+        self._avx_api_call('POST', 'enable_snat', params)
 
-    def disable_nat(self, gw_name):
+    def disable_snat(self, gw_name):
         """
-        Disables NAT on the given gateway
+        Disables SNAT on the given gateway
         Arguments:
         gw_name - string - gateway name
 
         """
 
-        params = {'gw_name': gw_name}
-        self._avx_api_call('POST', 'disable_nat', params)
+        params = {'gateway_name': gw_name}
+        self._avx_api_call('POST', 'disable_snat', params)
 
 
     def add_fqdn_filter_tag(self, tag_name):
@@ -746,9 +803,19 @@ class Aviatrix(object):
         tag_name - the name of the tag to update
         domains - list of domain definitions
                   for example: ["*.google.com", "cnn.com"]
+                  (default is port 443 and port 80)
         """
 
-        params = {'tag_name': tag_name, 'domain_names[]': domains}
+        # build up the new format
+        params = collections.OrderedDict()
+        params['tag_name'] = tag_name
+        current = 0
+        for domain in domains:
+            for port in (80, 443):
+                params['domain_names[%d][fqdn]' % (current)] = domain
+                params['domain_names[%d][proto]' % (current)] = "tcp"
+                params['domain_names[%d][port]' % (current)] = str(port)
+                current = current + 1
         self._avx_api_call('POST', 'set_fqdn_filter_tag_domain_names', params)
 
     def get_fqdn_filter_domain_list(self, tag_name):

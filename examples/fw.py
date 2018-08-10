@@ -103,15 +103,15 @@ def fw_policies_example(controller_ip, username, password, gw_name):
         print 'Gateway %s not found\n' % (gw_name)
         return
 
-    current = controller.get_fw_policy_full('gw-sample-app-dev')
+    current = controller.get_fw_policy_full(gw_name)
     print 'CURRENT POLICY: %s' % (current)
 
     rules = current['security_rules']
     rules.append({'protocol': 'all', 's_ip': '192.168.1.0/24',
                   'd_ip': '10.0.0.0/24', 'deny_allow': 'allow', 'port': '',
                   'log_enable': 'off'})
-    controller.set_fw_policy_security_rules('gw-sample-app-dev', rules)
-    current = controller.get_fw_policy_full('gw-sample-app-dev')
+    controller.set_fw_policy_security_rules(gw_name, rules)
+    current = controller.get_fw_policy_full(gw_name)
     print 'CURRENT POLICY: %s' % (current)
 
 if __name__ == "__main__":

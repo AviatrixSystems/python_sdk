@@ -11,8 +11,8 @@
 
 """
 #import logging
-#logging.basicConfig(stream=sys.stdout, level=logging.DEBUG)
 import sys
+#logging.basicConfig(stream=sys.stdout, level=logging.DEBUG)
 
 from aviatrix import Aviatrix
 
@@ -48,7 +48,7 @@ def fqdn_example(controller_ip, username, password, gw_name):
         print 'Gateway %s not found\n' % (gw_name)
         return
 
-    controller.enable_nat(gw_name)
+    controller.enable_snat(gw_name)
     controller.add_fqdn_filter_tag('TEST_TAG')
     tags = controller.list_fqdn_filters()
     if 'TEST_TAG' not in tags:
@@ -67,7 +67,7 @@ def fqdn_example(controller_ip, username, password, gw_name):
         print str(e)
         pass
 
-    print controller.get_fqdn_filter_domain_list('TEST_TAG')
+    print 'TEST_TAG:%s' % (controller.get_fqdn_filter_domain_list('TEST_TAG'))
 
     controller.attach_fqdn_filter_to_gateway('TEST_TAG', gw_name)
     gws = controller.list_fqdn_filter_gateways('TEST_TAG')
@@ -85,7 +85,7 @@ def fqdn_example(controller_ip, username, password, gw_name):
     controller.disable_fqdn_filter('TEST_TAG')
     controller.enable_fqdn_filter('TEST_TAG')
     controller.delete_fqdn_filter_tag('TEST_TAG')
-    controller.disable_nat(gw_name)
+    controller.disable_snat(gw_name)
 
 if __name__ == "__main__":
     main()
