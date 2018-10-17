@@ -913,6 +913,14 @@ class Aviatrix(object):
         self._avx_api_call('GET', 'list_fqdn_filter_tags', params)
         return self.results
 
+    def list_fqdn_filters_extended(self):
+        """
+        """
+
+        params = {'subaction': 'show'}
+        self._avx_api_call('POST', 'hostname_filter', params, True)
+        return self.results
+
     def list_fw_tags(self):
         """
         Lists all policy tags defined
@@ -1045,3 +1053,44 @@ class Aviatrix(object):
                   'cloud_subnet_cidr': new_subnet,
                   'subaction': 'edit'}
         self._avx_api_call('POST', 'site2cloud_conn', params, True)
+
+    def enable_monitor_gateway_subnets(self, gwy_name, exclude_list=None):
+        """
+        Enables monitoring of public subnets for the provided gateway
+        Arguments:
+        gwy_name - string - the gateway name
+        exclude_list - list of strings - instance ids to exclude
+        """
+
+        if not exclude_list:
+            _exclude_list = []
+        else:
+            _exclude_list = exclude_list
+        params = {'gateway_name': gwy_name,
+                  'monitor_exclude_gateway_list': _exclude_list}
+        self._avx_api_call('POST', 'enable_monitor_gateway_subnets', params)
+
+
+    def disable_monitor_gateway_subnets(self, gwy_name):
+        """
+        Disable monitoring of public subnets for the provided gateway
+        Arguments:
+        gwy_name - string - the gateway name
+        """
+
+        params = {'gateway_name': gwy_name}
+        self._avx_api_call('POST', 'disable_monitor_gateway_subnets', params)
+
+    def get_gateway_diagnostics(self, gwy_name):
+        """
+        Runs the gateway diagnostics for the given gateway and returns
+        the result as a JSON object.
+        Arguments:
+        gwy_name - string - the gateway name
+        """
+
+        params = {'gateway': gwy_name,
+                  'controller': 'off'}
+        self._avx_api_call('POST', 'run_diagnostics', params, True)
+        self._avx_api_call('POST', 'show_diagnostics', {}, True)
+        return self.result
