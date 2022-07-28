@@ -22,7 +22,7 @@ import datetime
 import json
 import logging
 import urllib
-import urllib2
+import urllib3
 import ssl
 
 class Util(object):
@@ -115,9 +115,9 @@ class Aviatrix(object):
 
         if method == 'GET':
             url = url + '?' + data
-            response = urllib2.urlopen(url, context=self.ctx)
+            response = urllib3.urlopen(url, context=self.ctx)
         elif method == 'POST':
-            response = urllib2.urlopen(url, data=data, context=self.ctx)
+            response = urllib3.urlopen(url, data=data, context=self.ctx)
         else:
             raise ValueError('Invalid method %s', method)
 
@@ -136,7 +136,7 @@ class Aviatrix(object):
                     self.results = self.result['results']
             else:
                 self.results = self.result
-        except ValueError, nojson:
+        except (ValueError, nojson):
             if str(nojson) == 'No JSON object could be decoded':
                 self.results = json_response
             else:
@@ -161,7 +161,7 @@ class Aviatrix(object):
         try:
             if self.result['return']:
                 self.customer_id = self.result['CID']
-        except AttributeError, login_err:
+        except (AttributeError, login_err):
             logging.info('Login Request Failed. AttributeError: %s', str(login_err))
 
     def admin_email(self, email):
